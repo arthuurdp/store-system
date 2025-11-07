@@ -171,7 +171,6 @@ public class StoreSystem {
             return;
         }
 
-        System.out.println("Current purchase: ");
         System.out.println(purchase);
 
         System.out.println("What do you want to do?");
@@ -193,7 +192,11 @@ public class StoreSystem {
         if (listProducts.isEmpty()) {
             System.out.println("No product registered.\n");
         } else {
+            System.out.println();
+            System.out.println("-=-=-=-=-=-=-=-=- PRODUCTS -=-=-=-=-=-=-=-=-=-=");
             listProducts.forEach(System.out::println);
+            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+            System.out.println();
         }
     }
     // ------------------------------------------------- //
@@ -203,7 +206,9 @@ public class StoreSystem {
         if (listPurchases.isEmpty()) {
             System.out.println("No purchase registered.\n");
         } else {
+            System.out.println();
             listPurchases.forEach(System.out::println);
+            System.out.println();
         }
     }
     // ------------------------------------------------- //

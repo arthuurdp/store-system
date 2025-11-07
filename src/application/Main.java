@@ -8,52 +8,35 @@ public class Main {
     public static void main(String[] args) {
         Locale.setDefault(Locale.US);
         Scanner sc = new Scanner(System.in);
-        StoreSystem sistema = new StoreSystem(sc);
+        StoreSystem system = new StoreSystem(sc);
 
         while (true) {
             System.out.println(menu());
-            System.out.print("Escolha uma opção: ");
-            char opcao = sc.next().charAt(0);
+            System.out.print("Choose an option: ");
+            char option = sc.next().charAt(0);
             sc.nextLine();
 
-            if (opcao == '1') {
-                sistema.addProduct();
-            }
-            else if (opcao == '2') {
-                sistema.excludeProduct();
-            }
-            else if (opcao == '3') {
-                sistema.addPurchase();
-            }
-            else if (opcao == '4') {
-                sistema.excludePurchase();
-            }
-            else if (opcao == '5') {
-                sistema.changeProduct();
-            }
-            else if (opcao == '6') {
-                sistema.changePurchase();
-            }
-            else if (opcao == '7') {
-                sistema.listProducts();
-            }
-            else if (opcao == '8') {
-                sistema.listPurchases();
-            }
-            else if (opcao == '9') {
-                System.out.println("Saindo...");
-                break;
-            }
-            else {
-                System.out.println("Opção inválida!\n");
+            switch (option) {
+                case '1' -> system.addProduct();
+                case '2' -> system.excludeProduct();
+                case '3' -> system.addPurchase();
+                case '4' -> system.excludePurchase();
+                case '5' -> system.changeProduct();
+                case '6' -> system.changePurchase();
+                case '7' -> system.listProducts();
+                case '8' -> system.listPurchases();
+                case '9' -> {
+                    System.out.println("Saindo...");
+                    return;
+                }
+                default -> System.out.println("Invalid Option!\n");
             }
         }
-        sc.close();
     }
 
     private static String menu() {
         return """
-                --- MENU ---
+                -=-=-=-=-=-=-=-=- MENU -=-=-=-=-=-=-=-=-=-=
                 1 - Add Product
                 2 - Exclude Product
                 3 - Add Purchase
@@ -63,6 +46,7 @@ public class Main {
                 7 - List Products
                 8 - List Purchases
                 9 - Exit Program
+                -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
                 """;
     }
 }

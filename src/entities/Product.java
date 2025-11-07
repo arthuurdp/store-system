@@ -44,10 +44,10 @@ public class Product {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Code: ").append(this.code)
-                .append(", Name: ").append(this.name)
-                .append(", Quantity: ").append(this.quantity)
-                .append(", Price: R$ ").append(String.format("%.2f", this.price));
+        sb.append("Code: ").append(this.code);
+        sb.append(", Name: ").append(this.name);
+        sb.append(", Quantity: ").append(this.quantity);
+        sb.append(", Price: R$ ").append(String.format("%.2f", this.price));
         return sb.toString();
     }
 }

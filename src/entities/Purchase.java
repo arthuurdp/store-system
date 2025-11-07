@@ -70,24 +70,25 @@ public class Purchase {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("-------------------------\n");
-        sb.append("Purchase: ").append(code).append("\n");
-        sb.append("Products: \n");
+
+        sb.append("\n" + "-=-=-=-=-=-=-=-=- PURCHASE DETAILS -=-=-=-=-=-=-=-=-=-=").append("\n");
+        sb.append(String.format("Purchase Code: %s%n", code));
 
         if (listProducts.isEmpty()) {
-            sb.append("No product has been added.\n");
+            sb.append("\nNo products have been added.\n");
         } else {
+            sb.append("------------------- PRODUCTS ----------------------\n");
             for (Product p : listProducts) {
-                sb.append("- ").append(p.toString()).append("\n");
+                sb.append(p).append("\n");
             }
+            sb.append("---------------------------------------------------\n");
         }
 
-        sb.append("\n");
-        sb.append(String.format("Purchase total: R$ %.2f%n", total()));
-        sb.append(String.format("Total with ICMS: R$ %.2f", calculateIcms()));
-        sb.append("\n");
+        sb.append(String.format("Purchase Total    : R$ %.2f%n", total()));
+        sb.append(String.format("Total with ICMS   : R$ %.2f%n", calculateIcms()));
+        sb.append("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=").append("\n");
 
         return sb.toString();
-    }
 
+    }
 }
