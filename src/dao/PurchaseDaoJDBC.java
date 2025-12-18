@@ -1,6 +1,7 @@
 package dao;
 
 import db.DB;
+import db.DbException;
 import entities.Product;
 import entities.Purchase;
 
@@ -16,7 +17,7 @@ public class PurchaseDaoJDBC implements PurchaseDao {
     }
 
     @Override
-    public void insert(Purchase obj) {
+    public void insert(Purchase p) {
         PreparedStatement st = null;
         try {
             conn.setAutoCommit(false);
@@ -25,21 +26,21 @@ public class PurchaseDaoJDBC implements PurchaseDao {
                     "INSERT INTO purchases (total_price, total_with_icms) VALUES (?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
 
-            st.setDouble(1, obj.total());
-            st.setDouble(2, obj.calculateIcms());
+            st.setDouble(1, p.total());
+            st.setDouble(2, p.calculateIcms());
 
-            int rowsAffected = st.executeUpdate();
+            int rows = st.executeUpdate();
 
-            if (rowsAffected > 0) {
+            if (rows == 0) {
+                conn.rollback();
+                throw new DbException("Unexpected error!");
+            } else {
                 ResultSet rs = st.getGeneratedKeys();
                 if (rs.next()) {
-                    int purchaseId = rs.getInt(1);
-                    insertItems(purchaseId, obj.getListProducts());
+                    p.setId(rs.getInt(1));
+                    insertItems(p.getId(), p.getListProducts());
                 }
                 conn.commit();
-            } else {
-                conn.rollback();
-                throw new RuntimeException("Unexpected error! No rows affected!");
             }
         } catch (SQLException e) {
             try {
@@ -47,7 +48,7 @@ public class PurchaseDaoJDBC implements PurchaseDao {
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             try {
                 conn.setAutoCommit(true);
@@ -58,22 +59,45 @@ public class PurchaseDaoJDBC implements PurchaseDao {
         }
     }
 
-    private void insertItems(int purchaseId, List<Product> products) throws SQLException {
+    @Override
+    public void update(Purchase p) {
         PreparedStatement st = null;
         try {
-            st = conn.prepareStatement(
-                    "INSERT INTO purchase_items (purchase_id, product_id, quantity, unit_price) " +
-                            "VALUES (?, ?, ?, ?)");
+            conn.setAutoCommit(false);
 
-            for (Product p : products) {
-                st.setInt(1, purchaseId);
-                st.setInt(2, p.getId());
-                st.setInt(3, p.getQuantity());
-                st.setDouble(4, p.getPrice());
-                st.addBatch();
-            }
+            st = conn.prepareStatement(
+                    "UPDATE purchases SET total_price = ?, total_with_icms = ? WHERE id = ?");
+
+            st.setDouble(1, p.total());
+            st.setDouble(2, p.calculateIcms());
+            st.setInt(3, p.getId());
             st.executeUpdate();
+
+            PreparedStatement stDelete = null;
+            try {
+                stDelete = conn.prepareStatement("DELETE FROM purchase_items WHERE purchase_id = ?");
+                stDelete.setInt(1, p.getId());
+                stDelete.executeUpdate();
+            } finally {
+                DB.closeStatement(stDelete);
+            }
+
+            insertItems(p.getId(), p.getListProducts());
+
+            conn.commit();
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            throw new DbException(e.getMessage());
         } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             DB.closeStatement(st);
         }
     }
@@ -84,9 +108,14 @@ public class PurchaseDaoJDBC implements PurchaseDao {
         try {
             st = conn.prepareStatement("DELETE FROM purchases WHERE id = ?");
             st.setInt(1, id);
-            st.executeUpdate();
+
+            int rows = st.executeUpdate();
+
+            if (rows == 0) {
+                throw new DbException("Purchase not found!");
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
         }
@@ -122,7 +151,7 @@ public class PurchaseDaoJDBC implements PurchaseDao {
             }
             return purchase;
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
             DB.closeResultSet(rs);
@@ -134,20 +163,63 @@ public class PurchaseDaoJDBC implements PurchaseDao {
         PreparedStatement st = null;
         ResultSet rs = null;
         try {
-            st = conn.prepareStatement("SELECT * FROM purchases ORDER BY purchase_date DESC");
+            st = conn.prepareStatement(
+                    "SELECT p.*, pi.product_id, pi.quantity as item_quantity, pi.unit_price, prod.name as product_name " +
+                            "FROM purchases p " +
+                            "LEFT JOIN purchase_items pi ON p.id = pi.purchase_id " +
+                            "LEFT JOIN products prod ON pi.product_id = prod.id " +
+                            "ORDER BY p.id DESC");
             rs = st.executeQuery();
 
             List<Purchase> list = new ArrayList<>();
+            java.util.Map<Integer, Purchase> map = new java.util.HashMap<>();
+
             while (rs.next()) {
-                Purchase p = new Purchase(rs.getInt("id"));
-                list.add(p);
+                int id = rs.getInt("id");
+                Purchase p = map.get(id);
+
+                if (p == null) {
+                    p = new Purchase(id);
+                    map.put(id, p);
+                    list.add(p);
+                }
+
+                if (rs.getObject("product_id") != null) {
+                    Product prod = new Product(
+                            rs.getInt("product_id"),
+                            rs.getString("product_name"),
+                            rs.getInt("item_quantity"),
+                            rs.getDouble("unit_price")
+                    );
+                    p.addProduct(prod);
+                }
             }
             return list;
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
             DB.closeResultSet(rs);
+        }
+    }
+
+    private void insertItems(int purchaseId, List<Product> products) throws SQLException {
+        PreparedStatement st = null;
+        try {
+            st = conn.prepareStatement(
+                    "INSERT INTO purchase_items (purchase_id, product_id, quantity, unit_price) " +
+                            "VALUES (?, ?, ?, ?)");
+
+            for (Product p : products) {
+                st.setInt(1, purchaseId);
+                st.setInt(2, p.getId());
+                st.setInt(3, p.getQuantity());
+                st.setDouble(4, p.getPrice());
+                st.addBatch();
+            }
+            st.executeBatch();
+        } finally {
+            DB.closeStatement(st);
         }
     }
 }

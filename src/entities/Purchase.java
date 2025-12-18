@@ -15,6 +15,10 @@ public class Purchase {
         return id;
     }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public List<Product> getListProducts() {
         return listProducts;
     }
@@ -24,29 +28,16 @@ public class Purchase {
     }
 
     public void removeProduct(Product product, int quantity) {
-        if (quantity <= 0) {
-            System.out.println("Invalid quantity.\n");
-            return;
-        }
-
-        if (!listProducts.contains(product)) {
-            System.out.println("Product not found in this purchase.\n");
-            return;
-        }
-
-        if (product.getQuantity() < quantity) {
-            System.out.println("You are trying to remove more than purchased.\n");
-            return;
-        }
-
-        product.setQuantity(product.getQuantity() - quantity);
-
-        if (product.getQuantity() == 0) {
-            listProducts.remove(product);
+        Product p = getProductById(product.getId());
+        if (p != null) {
+            p.setQuantity(p.getQuantity() - quantity);
+            if (p.getQuantity() == 0) {
+                listProducts.remove(p);
+            }
         }
     }
 
-    public Product getProductByCode(int id) {
+    public Product getProductById(Integer id) {
         for (Product p : listProducts) {
             if (p.getId() == id) {
                 return p;
@@ -71,24 +62,25 @@ public class Purchase {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("\n" + "-=-=-=-=-=-=-=-=- PURCHASE DETAILS -=-=-=-=-=-=-=-=-=-=").append("\n");
-        sb.append(String.format("Purchase Code: %s%n", id));
+        sb.append("\n===================================================\n");
+        sb.append(String.format("                PURCHASE DETAILS #%d\n", id));
+        sb.append("===================================================\n");
 
         if (listProducts.isEmpty()) {
-            sb.append("\nNo products have been added.\n");
+            sb.append("   (No products in this purchase)\n");
         } else {
-            sb.append("------------------- PRODUCTS ----------------------\n");
-            for (Product p : listProducts) {
-                sb.append(p).append("\n");
-            }
+            sb.append(String.format("%-25s | %-10s | %-5s\n", "Product Name", "Qty", "Price"));
             sb.append("---------------------------------------------------\n");
+            for (Product p : listProducts) {
+                sb.append(String.format("%-25s | %-10d | R$ %8.2f\n", 
+                                       p.getName(), p.getQuantity(), p.getPrice()));
+            }
         }
-
-        sb.append(String.format("Purchase Total    : R$ %.2f%n", total()));
-        sb.append(String.format("Total with ICMS   : R$ %.2f%n", calculateIcms()));
-        sb.append("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=").append("\n");
+        sb.append("---------------------------------------------------\n");
+        sb.append(String.format("Subtotal          : R$ %10.2f\n", total()));
+        sb.append(String.format("Total (inc. ICMS) : R$ %10.2f\n", calculateIcms()));
+        sb.append("===================================================\n");
 
         return sb.toString();
-
     }
 }

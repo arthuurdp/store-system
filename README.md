@@ -1,40 +1,71 @@
 # Store System
 
-A simple Java console application designed to manage products and purchases for a retail store. This project was developed as part of a Java course to practice Object-Oriented Programming (OOP) concepts, list manipulation, and basic system logic.
+A Java console application designed to manage products and purchases for a retail store. This project implements a modern, professional **Layered Architecture** with persistence in a **MySQL database** via **JDBC**.
 
-##  Features
+## Features
 
-The system offers a variety of functionalities to manage inventory and sales:
+The system offers a full suite of functionalities to manage inventory and sales:
 
 ### Product Management
-- **Add Product:** Register new products with code, name, quantity, and price.
-- **Exclude Product:** Remove products from the system's inventory.
-- **Change Product:** Update existing product information (Name, Quantity, or Price).
-- **List Products:** View all registered products in the stock.
+- **addProduct():** Register new products.
+- **excludeProduct():** Remove products from the inventory.
+- **changeProduct():** Update name, quantity, or price.
+- **listProducts():** View all stock items sorted by name.
 
 ### Purchase Management
-- **Add Purchase:** Create a new purchase, adding multiple products from the stock.
-- **Exclude Purchase:** Cancel and remove a purchase from the system.
-- **Change Purchase:** Modify an existing purchase by adding or removing products.
-- **List Purchases:** Display all recorded purchases, including details like total price and total with ICMS tax.
+- **Add Purchase:** Create a new purchase with multiple items.
+- **Stock Integration:** Automatically deducts from stock when a product is added to a purchase.
+- **Exclude Purchase:** Cancel a purchase and automatically return all items to stock.
+- **Change Purchase:** Add or remove products from an existing purchase, with real-time stock updates.
+- **List Purchases:** View all recorded purchases with detailed itemized lists.
 
 ### Financial Calculations
-- **Total Calculation:** Automatically calculates the total value of each purchase.
+- **Dynamic Totals:** Automatically calculates the subtotal of each purchase.
 - **ICMS Tax:** Applies a standard ICMS tax (17%) to the total purchase value.
 
-##  Project Structure
+## Architecture
 
-The project is organized into the following packages:
+The project follows a **Layered Architecture** pattern, ensuring separation of concerns and maintainability:
 
-- `application`: Contains the `Main` class, the entry point of the application and the menu logic.
-- `entities`: Contains the domain models:
-    - `Product`: Represents a store item.
-    - `Purchase`: Represents a customer's purchase, containing a list of products.
-- `services`: Contains the `StoreSystem` class, which handles the business logic and manages the data in memory.
+1. **Entities (`src/entities`)**: Pure data objects (`Product`, `Purchase`) containing core domain logic.
+2. **DAO Layer (`src/dao`)**: Data Access Objects that encapsulate all database interactions using JDBC.
+3. **Service Layer (`src/services`)**: Orchestrates business rules and coordinates between the UI and the DAO. This layer handles complex operations like stock management.
+4. **UI Layer (`src/system`)**: Manages user interaction and console I/O, decoupled from business logic via **Dependency Injection**.
+5. **Database Layer (`src/db`)**: Manages the connection pool and SQL exception handling.
 
-##  Usage Example
+## Tech Stack
 
-Upon running the program, you will see a menu like this:
+- **Java**: Core programming language.
+- **JDBC**: Java Database Connectivity for persistence.
+- **MySQL**: Relational database.
+- **MySQL Connector/J**: Official JDBC driver for MySQL.
+
+## Setup & Installation
+
+### 1. Database Setup
+1. Create a MySQL database named storejdbc.
+2. Run the provided `script.sql` file to create the necessary tables:
+   ```sql
+   -- Run this in your MySQL client
+   SOURCE script.sql;
+   ```
+
+### 2. Configure Connection
+1. Create a `db.properties` file in the project root (or root of the source) with your credentials:
+   ```properties
+   user=your_username
+   password=your_password
+   dburl=jdbc:mysql://localhost:3306/store_db
+   useSSL=false
+   ```
+2. Ensure the `lib/mysql-connector-j-9.5.0.jar` is added to your project's classpath.
+
+### 3. Run the Application
+Compile and run the `Main` class located in `src/application/Main.java`.
+
+## 📖 Usage Example
+
+Upon running the program, you will interact with the following menu:
 
 ```text
 -=-=-=-=-=-=-=-=- MENU -=-=-=-=-=-=-=-=-=-=
@@ -51,7 +82,11 @@ Upon running the program, you will see a menu like this:
 Choose an option:
 ```
 
-Simply type the number corresponding to the action you want to perform and follow the on-screen instructions.
+## Best Practices Implemented
+- **Single Responsibility Principle (SRP)**: Each class has a clear, focused purpose.
+- **Dependency Injection**: Services are injected into the UI layer.
+- **Transactional Integrity**: Database operations use manual commits and rollbacks to ensure data consistency.
+- **Clean Code**: Meaningful naming, consistent formatting, and decoupled components.
 
 ---
 ## Author

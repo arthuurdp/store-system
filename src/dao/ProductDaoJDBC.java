@@ -1,6 +1,7 @@
 package dao;
 
 import db.DB;
+import db.DbException;
 import entities.Product;
 
 import java.sql.*;
@@ -26,19 +27,18 @@ public class ProductDaoJDBC implements ProductDao {
             st.setInt(2, p.getQuantity());
             st.setDouble(3, p.getPrice());
 
-            int rowsAffected = st.executeUpdate();
+            int rows = st.executeUpdate();
 
-            if (rowsAffected > 0) {
+            if (rows == 0) {
+                throw new DbException("Unexpected error! No rows affected!");
+            } else {
                 ResultSet rs = st.getGeneratedKeys();
                 if (rs.next()) {
                     p.setId(rs.getInt(1));
-                    System.out.println("Product " + p.getName() + " successfully registered!\n");
                 }
-            } else {
-                throw new RuntimeException("Unexpected error! No rows affected!");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
         }
@@ -56,10 +56,9 @@ public class ProductDaoJDBC implements ProductDao {
             st.setInt(2, p.getQuantity());
             st.setDouble(3, p.getPrice());
             st.setInt(4, p.getId());
-
             st.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
         }
@@ -73,7 +72,7 @@ public class ProductDaoJDBC implements ProductDao {
             st.setInt(1, id);
             st.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
         }
@@ -93,7 +92,7 @@ public class ProductDaoJDBC implements ProductDao {
             }
             return null;
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
             DB.closeResultSet(rs);
@@ -115,7 +114,7 @@ public class ProductDaoJDBC implements ProductDao {
             }
             return list;
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
             DB.closeResultSet(rs);

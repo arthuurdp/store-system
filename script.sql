@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS purchase_items (
     quantity INT NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );

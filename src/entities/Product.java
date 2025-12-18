@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.Objects;
+
 public class Product {
     private Integer id;
     private String name;
@@ -44,12 +46,23 @@ public class Product {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Product product = (Product) o;
+
+        return Objects.equals(id, product.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
+
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Id: ").append(this.id);
-        sb.append(", Name: ").append(this.name);
-        sb.append(", Quantity: ").append(this.quantity);
-        sb.append(", Price: R$ ").append(String.format("%.2f", this.price));
-        return sb.toString();
+        return String.format("ID: %-3d | Name: %-20s | Price: R$ %8.2f | Stock: %d", 
+                             id, name, price, quantity);
     }
 }

@@ -1,6 +1,8 @@
 package application;
 
-import services.StoreSystem;
+import services.ProductService;
+import services.PurchaseService;
+import system.StoreSystem;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -8,7 +10,9 @@ public class Main {
     public static void main(String[] args) {
         Locale.setDefault(Locale.US);
         Scanner sc = new Scanner(System.in);
-        StoreSystem system = new StoreSystem(sc);
+        ProductService productService = new ProductService();
+        PurchaseService purchaseService = new PurchaseService();
+        StoreSystem system = new StoreSystem(productService, purchaseService, sc);
 
         while (true) {
             System.out.println(menu());
