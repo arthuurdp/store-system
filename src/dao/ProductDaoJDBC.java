@@ -30,7 +30,7 @@ public class ProductDaoJDBC implements ProductDao {
             int rows = st.executeUpdate();
 
             if (rows == 0) {
-                throw new DbException("Unexpected error! No rows affected!");
+                throw new DbException("Unexpected error!");
             } else {
                 ResultSet rs = st.getGeneratedKeys();
                 if (rs.next()) {
@@ -68,12 +68,31 @@ public class ProductDaoJDBC implements ProductDao {
     public void deleteById(Integer id) {
         PreparedStatement st = null;
         try {
+            conn.setAutoCommit(false);
+
+            st = conn.prepareStatement("DELETE FROM purchase_items WHERE product_id = ?");
+            st.setInt(1, id);
+            st.executeUpdate();
+            DB.closeStatement(st);
+
             st = conn.prepareStatement("DELETE FROM products WHERE id = ?");
             st.setInt(1, id);
             st.executeUpdate();
+
+            conn.commit();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException ex) {
+                throw new DbException(ex.getMessage());
+            }
             throw new DbException(e.getMessage());
         } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            }
             DB.closeStatement(st);
         }
     }
